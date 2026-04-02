@@ -1,0 +1,16 @@
+{
+    "name": "MutedMelody.Camera",
+    "rootNamespace": "MutedMelody.Camera",
+    "references": [
+        "MutedMelody.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

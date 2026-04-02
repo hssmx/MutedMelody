@@ -1,0 +1,16 @@
+{
+    "name": "MutedMelody.SceneManagement",
+    "rootNamespace": "MutedMelody.SceneManagement",
+    "references": [
+        "MutedMelody.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

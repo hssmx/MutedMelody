@@ -1,0 +1,16 @@
+{
+    "name": "MutedMelody.Enemies",
+    "rootNamespace": "MutedMelody.Enemies",
+    "references": [
+        "MutedMelody.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
