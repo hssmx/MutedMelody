@@ -209,3 +209,4 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 7113a5a026126397ea15eb904a602224, type: 2}
   _platformPrefab: {fileID: -237842968581030474, guid: f95739d9326eca16f844df98b21348ab, type: 3}
   _playerTransform: {fileID: 7573655176631430256}
+  _judgmentConfig: {fileID: 11400000, guid: ed379a12d2c719a8ebc562afe6801f69, type: 2}

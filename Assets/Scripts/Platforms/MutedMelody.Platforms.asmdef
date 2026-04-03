@@ -2,7 +2,8 @@
     "name": "MutedMelody.Platforms",
     "rootNamespace": "MutedMelody.Platforms",
     "references": [
-        "MutedMelody.Core"
+        "MutedMelody.Core",
+        "MutedMelody.Audio"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

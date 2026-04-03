@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MutedMelody.Core;
 using MutedMelody.Core.Events;
+using MutedMelody.Audio;
 
 namespace MutedMelody.Platforms
 {
@@ -11,6 +12,7 @@ namespace MutedMelody.Platforms
         [SerializeField] private NotePlatformData _data;
         [SerializeField] private NotePlatform _platformPrefab;
         [SerializeField] private Transform _playerTransform;
+        [SerializeField] private JudgmentConfig _judgmentConfig;
 
         private Queue<NotePlatform> _activeQueue = new Queue<NotePlatform>();
         private List<NotePlatform> _pool = new List<NotePlatform>();
@@ -55,6 +57,17 @@ namespace MutedMelody.Platforms
 
         public void SpawnPlatform()
         {
+            if (ConductorManager.Instance != null && _judgmentConfig != null)
+            {
+                var (result, offsetMs) = BeatJudgment.Judge(ConductorManager.Instance, _judgmentConfig);
+                
+                // Publish the result so UI/VFX/Score systems can react later
+                EventBus.Publish(new JudgmentEvent { Result = result, OffsetMs = offsetMs });
+                
+                // Temporary debug log so you can see your timing in the console!
+                Debug.Log($"[Beat Judgment] {result}! Offset: {offsetMs:F1}ms");
+            }
+            
             // FIFO Overflow Check
             if (_activeQueue.Count >= _data.maxActivePlatforms)
             {
