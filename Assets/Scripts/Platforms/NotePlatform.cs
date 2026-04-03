@@ -1,3 +1,4 @@
+using MutedMelody.Core;
 using UnityEngine;
 
 namespace MutedMelody.Platforms
@@ -36,6 +37,8 @@ namespace MutedMelody.Platforms
             
             // TODO (Phase 14): Trigger Shatter VFX/SFX/Shake here before disabling
             // Debug.Log($"[NotePlatform] Shattered index {QueueIndex}");
+            
+            EventBus.Publish(new MutedMelody.Core.Events.PlatformShatteredEvent());
             
             gameObject.SetActive(false);
         }

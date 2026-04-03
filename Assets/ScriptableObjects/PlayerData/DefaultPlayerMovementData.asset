@@ -16,7 +16,7 @@ MonoBehaviour:
   accelerationTime: 0.03
   decelerationTime: 0.03
   jumpForce: 11
-  gravityScale: 3
+  gravityScale: 1
   jumpCutMultiplier: 6
   fallMultiplier: 4
   maxFallSpeed: -30
