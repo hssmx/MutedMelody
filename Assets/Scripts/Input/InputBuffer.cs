@@ -1,7 +1,7 @@
 using UnityEngine;
 using MutedMelody.Core;
 
-namespace MutedMelody.InputSystem
+namespace MutedMelody.Input
 {
     public class InputBuffer : Singleton<InputBuffer>
     {

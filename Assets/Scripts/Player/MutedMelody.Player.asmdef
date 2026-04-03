@@ -2,7 +2,9 @@
     "name": "MutedMelody.Player",
     "rootNamespace": "",
     "references": [
-        "GUID:93bfb9dcc044e025581fcb5cb1fdc896"
+        "GUID:93bfb9dcc044e025581fcb5cb1fdc896",
+        "GUID:7d817050259320ef88c0d58e8138e91f",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

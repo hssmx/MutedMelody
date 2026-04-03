@@ -2,7 +2,7 @@ using UnityEngine;
 using MutedMelody.Core;
 using MutedMelody.Core.Events;
 
-namespace MutedMelody.InputSystem
+namespace MutedMelody.Input
 {
     // P02.06: Create InputManager.cs extending Singleton
     public class InputManager : Singleton<InputManager>

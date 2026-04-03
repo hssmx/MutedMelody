@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 938012110}
   - component: {fileID: 938012109}
   - component: {fileID: 938012111}
+  - component: {fileID: 938012112}
   m_Layer: 0
   m_Name: --- MANAGERS ---
   m_TagString: Untagged
@@ -176,6 +177,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 346c3b09c805e367ebbf9b163ed240b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MutedMelody.InputSystem.InputManager
+--- !u!114 &938012112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 938012108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00d82a2a63f529470853c36f7158fc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MutedMelody.Input::MutedMelody.Input.InputBuffer
+  jumpBufferWindow: 0.1
+  dashBufferWindow: 0.15
+  platformBufferWindow: 0.1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

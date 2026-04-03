@@ -1,35 +1,37 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using MutedMelody.InputSystem;
+using MutedMelody.Input;
 
 namespace MutedMelody.Player
 {
-    [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D))]
+    [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(SpriteRenderer))]
     public class PlayerController : MonoBehaviour
     {
-        [Header("References (P03.09)")]
+        [Header("References")]
         [SerializeField] private PlayerMovementData _data;
-        [SerializeField] private LayerMask _groundLayer; // Required for P03.14
+        [SerializeField] private LayerMask _groundLayer;
+        
+        [Header("State Data")]
+        public PlayerStateData State = new PlayerStateData();
 
         private Rigidbody2D _rb;
         private BoxCollider2D _collider;
+        private SpriteRenderer _spriteRenderer;
         private InputBuffer _inputBuffer;
 
-        [Header("State Flags (P03.09)")]
-        [SerializeField, ReadOnly] private bool _isGrounded;
-        private bool _isJumping;
         private float _coyoteTimer;
-        private Vector2 _moveInput;
 
-        // P03.10: Implement Awake()
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
             _collider = GetComponent<BoxCollider2D>();
-            _inputBuffer = InputBuffer.Instance; 
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+            _inputBuffer = InputBuffer.Instance;
+
+            // Prevent unwanted physics rotations
+            _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
 
-        // P03.11: Subscribe to Jump Input Events
         private void OnEnable()
         {
             if (InputManager.Instance != null)
@@ -48,34 +50,123 @@ namespace MutedMelody.Player
             }
         }
 
-        // P03.12: Implement OnJumpPerformed
         private void OnJumpPerformed(InputAction.CallbackContext context)
         {
             _inputBuffer.QueueJump();
         }
 
-        // P03.13: Implement OnJumpCanceled
         private void OnJumpCanceled(InputAction.CallbackContext context)
         {
-            _isJumping = false;
+            State.IsJumping = false;
         }
-
+        
         private void Update()
         {
+            if (!State.IsAlive) return;
+
+            // Read Movement and Jump Inputs Safely
+            if (InputManager.Instance != null)
+            {
+                State.CurrentMoveInput = InputManager.Instance.Gameplay.Move.ReadValue<Vector2>();
+
+                if (InputManager.Instance.Gameplay.Jump.WasPressedThisFrame())
+                {
+                    if (InputBuffer.Instance != null) InputBuffer.Instance.QueueJump();
+                }
+
+                if (InputManager.Instance.Gameplay.Jump.WasReleasedThisFrame())
+                {
+                    State.IsJumping = false;
+                }
+            }
+
             CheckGrounded();
+
+            // Update coyote timer
+            if (State.IsGrounded)
+            {
+                _coyoteTimer = _data.coyoteTime;
+            }
+            else
+            {
+                _coyoteTimer -= Time.deltaTime;
+            }
+
+            // Implement Jump Execution Logic Safely
+            if (InputBuffer.Instance != null && InputBuffer.Instance.ConsumeJump() && (State.IsGrounded || _coyoteTimer > 0f))
+            {
+                ExecuteJump();
+            }
+
+            // Implement Sprite Flipping
+            if (State.CurrentMoveInput.x > 0) _spriteRenderer.flipX = false;
+            else if (State.CurrentMoveInput.x < 0) _spriteRenderer.flipX = true;
+
+            // Update Velocity State
+            State.Velocity = _rb.linearVelocity;
+        }
+        private void FixedUpdate()
+        {
+            if (!State.IsAlive) return;
+
+            // P03.19: FixedUpdate Structure
+            CalculateHorizontalMovement();
+            CalculateVariableGravity();
         }
 
-        // P03.14: Implement Ground Detection
+        private void ExecuteJump()
+        {
+            _coyoteTimer = 0f;
+            State.IsJumping = true;
+
+            // Reset Y velocity before jumping so downward momentum doesn't eat the jump force
+            _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _data.jumpForce);
+        }
+
+        // P03.20: Implement Horizontal Movement
+        private void CalculateHorizontalMovement()
+        {
+            float targetSpeed = State.CurrentMoveInput.x * _data.maxSpeed;
+            float speedDif = targetSpeed - _rb.linearVelocity.x;
+
+            // Calculate acceleration rate based on whether we are speeding up or slowing down
+            float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? (1 / _data.accelerationTime) : (1 / _data.decelerationTime);
+            
+            float movement = speedDif * accelRate;
+            _rb.AddForce(movement * Vector2.right, ForceMode2D.Force);
+        }
+
+        // P03.21 & P03.22: Variable Gravity & Fall Clamping
+        private void CalculateVariableGravity()
+        {
+            // Falling
+            if (_rb.linearVelocity.y < 0)
+            {
+                _rb.gravityScale = _data.gravityScale * _data.fallMultiplier;
+                
+                // P03.22: Fall Speed Clamping
+                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, Mathf.Max(_rb.linearVelocity.y, _data.maxFallSpeed));
+            }
+            // Rising + Jump Released (Variable Jump Height)
+            else if (_rb.linearVelocity.y > 0 && !State.IsJumping)
+            {
+                _rb.gravityScale = _data.gravityScale * _data.jumpCutMultiplier;
+            }
+            // Rising + Jump Held (Full Jump)
+            else
+            {
+                _rb.gravityScale = _data.gravityScale;
+            }
+        }
+
         private void CheckGrounded()
         {
-            // Calculate a box slightly smaller than the collider width, positioned at the bottom edge
             Vector2 boxCenter = (Vector2)_collider.bounds.center + Vector2.down * (_collider.bounds.extents.y - 0.05f);
             Vector2 boxSize = new Vector2(_collider.bounds.size.x * 0.9f, 0.1f);
             
-            _isGrounded = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, 0.1f, _groundLayer);
+            State.IsGrounded = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, 0.1f, _groundLayer);
         }
 
-        // Bonus: Visually draw the BoxCast in the Editor so you can debug the exact ground detection zone
         private void OnDrawGizmosSelected()
         {
             if (_collider == null) _collider = GetComponent<BoxCollider2D>();
@@ -88,7 +179,4 @@ namespace MutedMelody.Player
             }
         }
     }
-
-    // Helper attribute to see states in the inspector without allowing edits
-    public class ReadOnlyAttribute : PropertyAttribute { }
 }

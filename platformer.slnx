@@ -2,4 +2,6 @@
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="MutedMelody.Core.csproj" />
+  <Project Path="MutedMelody.Input.csproj" />
+  <Project Path="MutedMelody.Player.csproj" />
 </Solution>
