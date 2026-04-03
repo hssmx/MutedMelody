@@ -1,9 +1,8 @@
 {
-    "name": "MutedMelody.UI",
-    "rootNamespace": "MutedMelody.UI",
+    "name": "MutedMelody.Stats",
+    "rootNamespace": "MutedMelody.Stats",
     "references": [
-        "MutedMelody.Core",
-        "Unity.UGUI"
+        "MutedMelody.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
