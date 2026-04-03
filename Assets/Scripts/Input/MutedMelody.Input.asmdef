@@ -1,0 +1,17 @@
+{
+    "name": "MutedMelody.Input",
+    "rootNamespace": "",
+    "references": [
+        "GUID:93bfb9dcc044e025581fcb5cb1fdc896",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

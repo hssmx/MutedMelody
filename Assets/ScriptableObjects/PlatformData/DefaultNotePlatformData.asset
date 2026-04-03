@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df3509fea6db5016b27e32100c3e24a, type: 3}
+  m_Name: DefaultNotePlatformData
+  m_EditorClassIdentifier: MutedMelody.Platforms::MutedMelody.Platforms.NotePlatformData
+  maxActivePlatforms: 3
+  platformSize: {x: 1, y: 1}
+  spawnOffsetY: -0.5
