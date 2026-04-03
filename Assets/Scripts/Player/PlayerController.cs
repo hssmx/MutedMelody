@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using MutedMelody.Input;
+using MutedMelody.Platforms;
 
 namespace MutedMelody.Player
 {
@@ -10,6 +11,7 @@ namespace MutedMelody.Player
         [Header("References")]
         [SerializeField] private PlayerMovementData _data;
         [SerializeField] private LayerMask _groundLayer;
+        [SerializeField] private NotePlatformManager _platformManager;
         
         [Header("State Data")]
         public PlayerStateData State = new PlayerStateData();
@@ -96,6 +98,11 @@ namespace MutedMelody.Player
             if (InputBuffer.Instance != null && InputBuffer.Instance.ConsumeJump() && (State.IsGrounded || _coyoteTimer > 0f))
             {
                 ExecuteJump();
+            }
+            
+            if (InputManager.Instance.Gameplay.SpawnPlatform.WasPressedThisFrame())
+            {
+                if (_platformManager != null) _platformManager.SpawnPlatform();
             }
 
             // Implement Sprite Flipping
