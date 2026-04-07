@@ -170,5 +170,12 @@ namespace MutedMelody.Stats
                 Reason = reason
             });
         }
+        
+        public void Respawn()
+        {
+            if (_data == null) return;
+            float respawnAmount = _data.maxMelody * _data.respawnPercent;
+            SetMelodyInternal(respawnAmount, MelodyChangeReason.RespawnReset);
+        }
     }
 }

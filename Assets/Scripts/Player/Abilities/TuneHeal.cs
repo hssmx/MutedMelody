@@ -74,8 +74,15 @@ namespace MutedMelody.Player.Abilities
                 
                 if (IsTuning)
                 {
-                    if (!_melodyStaff.TrySpend(drainRate * Time.deltaTime, MelodyChangeReason.TuneSpend))
+                    float costThisFrame = drainRate * Time.deltaTime;
+                    
+                    if (!_melodyStaff.TrySpend(costThisFrame, MelodyChangeReason.TuneSpend))
                     {
+                        if (_melodyStaff.CurrentMelody > 0)
+                        {
+                            _melodyStaff.TrySpend(_melodyStaff.CurrentMelody, MelodyChangeReason.TuneSpend);
+                        }
+                        
                         StopTuning(); 
                     }
                 }

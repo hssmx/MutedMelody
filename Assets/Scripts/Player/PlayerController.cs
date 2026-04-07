@@ -88,9 +88,13 @@ namespace MutedMelody.Player
                 Singleton<InputManager>.TryGetInstance(out _inputManager);
             }
 
-            if (_invincibleTimer > 0f)
+            if (_invincibilityTimer > 0f)
             {
-                _invincibleTimer -= Time.deltaTime;
+                _invincibilityTimer -= Time.deltaTime;
+                if (_invincibilityTimer <= 0f)
+                {
+                    IsInvincible = false;
+                }
             }
 
             UpdateGroundedState();

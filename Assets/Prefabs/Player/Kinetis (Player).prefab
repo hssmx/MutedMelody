@@ -17,9 +17,11 @@ GameObject:
   - component: {fileID: 1340295861330879960}
   - component: {fileID: 9220090517747345706}
   - component: {fileID: 1512815789187812819}
+  - component: {fileID: 2054236498032187836}
+  - component: {fileID: 662397177851558609}
   m_Layer: 8
   m_Name: Kinetis (Player)
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -256,6 +258,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MutedMelody.Player::MutedMelody.Player.Abilities.TuneHeal
   _melodyData: {fileID: 11400000, guid: a0fdccf5a37b29d89a4845c156bb29f1, type: 2}
+--- !u!114 &2054236498032187836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075743189439281641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 964bad9f4a31da6a4988f1e0de4e4f62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MutedMelody.Player::MutedMelody.Player.PlayerDamageReceiver
+  _iFrameDuration: 1.5
+  _flashInterval: 0.1
+--- !u!114 &662397177851558609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075743189439281641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a561aa05676f54c29a00f63d2352a7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MutedMelody.Player::MutedMelody.Player.PlayerDeathHandler
 --- !u!1 &3510134323100185044
 GameObject:
   m_ObjectHideFlags: 0
