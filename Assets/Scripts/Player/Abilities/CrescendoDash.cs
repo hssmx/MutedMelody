@@ -1,7 +1,8 @@
-using MutedMelody.Input;
+using MutedMelody.Core.Events;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using MutedMelody.Stats;
+using MutedMelody.Input; 
 
 namespace MutedMelody.Player.Abilities
 {
@@ -14,7 +15,7 @@ namespace MutedMelody.Player.Abilities
         [SerializeField] private float _dashCooldown = 0.5f;
         
         [Header("References")]
-        [SerializeField] private MelodyStaffData _melodyData; // For dashCost
+        [SerializeField] private MelodyStaffData _melodyData;
 
         private PlayerController _player;
         private MelodyStaff _melodyStaff;
@@ -25,24 +26,28 @@ namespace MutedMelody.Player.Abilities
         private float _originalGravity;
         
         public bool IsDashing { get; private set; }
-        
-        private void Start()
-        {
-            // Make sure the action map name ("Gameplay") and action name ("Dash") match exactly what you typed in the Input Actions window!
-            InputManager.Instance.Gameplay.Dash.performed += OnDashInput;
-        }
 
-        private void OnDisable()
-        {
-            InputManager.Instance.Gameplay.Dash.performed -= OnDashInput;
-        }
-        
         private void Awake()
         {
+            if (_melodyData == null)
+            {
+                Debug.LogError($"[CrescendoDash] MelodyData is MISSING on {gameObject.name}! Disabling ability.");
+                this.enabled = false;
+                return;
+            }
+
             _player = GetComponent<PlayerController>();
             _melodyStaff = GetComponent<MelodyStaff>();
             _rb = GetComponent<Rigidbody2D>();
             _originalGravity = _rb.gravityScale;
+        }
+
+        private void Start() => InputManager.Instance.Gameplay.Dash.performed += OnDashInput;
+
+        private void OnDestroy()
+        {
+            if (InputManager.Instance != null)
+                InputManager.Instance.Gameplay.Dash.performed -= OnDashInput;
         }
 
         private void Update()
@@ -56,31 +61,26 @@ namespace MutedMelody.Player.Abilities
             }
         }
 
-        // Call this from your Input Manager or UnityEvent
         public void OnDashInput(InputAction.CallbackContext context)
         {
-            Debug.Log($"Dash Input Heard! Phase: {context.phase}");
-            
             if (context.performed) TryDash();
         }
 
         public void TryDash()
         {
-            if (IsDashing || _cooldownTimer > 0) return;
+            if (_player.IsMovementLocked || IsDashing || _cooldownTimer > 0) return;
             
-            float cost = _melodyData != null ? _melodyData.dashCost : 25f;
+            float cost = _melodyData.dashCost;
             if (!_melodyStaff.CanAfford(cost)) return;
 
-            // Consume resource
-            _melodyStaff.RemoveMelody(cost);
+            _melodyStaff.TrySpend(cost, MelodyChangeReason.DashSpend);
 
-            // Start Dash
             IsDashing = true;
             _dashTimer = _dashDuration;
-            _player.IsMovementLocked = true; // Stop normal running
-            _player.SetInvincible(_dashDuration); // iFrames!
+            
+            _player.AddMovementLock(); 
+            _player.SetInvincible(_dashDuration);
 
-            // Physics override
             _rb.gravityScale = 0f;
             _rb.linearVelocity = new Vector2(Mathf.Sign(transform.localScale.x) * _dashSpeed, 0f);
         }
@@ -89,9 +89,7 @@ namespace MutedMelody.Player.Abilities
         {
             IsDashing = false;
             _cooldownTimer = _dashCooldown;
-            _player.IsMovementLocked = false;
-            
-            // Restore physics and bleed momentum
+            _player.RemoveMovementLock();
             _rb.gravityScale = _originalGravity;
             _rb.linearVelocity = new Vector2(_rb.linearVelocity.x * 0.3f, _rb.linearVelocity.y);
         }

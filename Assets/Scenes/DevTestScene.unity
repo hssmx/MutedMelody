@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 200793082}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.3573079, y: 1.5292301, z: -7}
+  m_LocalPosition: {x: 0.3823981, y: 1.5292301, z: -7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -305,6 +305,37 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 401545644}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &690606531
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 690606532}
+  m_Layer: 0
+  m_Name: RuntimePools
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &690606532
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690606531}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -803,7 +834,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0.000061035156, y: 0}
+  m_AnchoredPosition: {x: 0.00012207031, y: 0}
   m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &925488978
@@ -927,45 +958,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1302209699 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2075743189439281641, guid: d1a1c800933dbb7238e95053b085ff41, type: 3}
-  m_PrefabInstance: {fileID: 8361173486836349114}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1302209705 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7573655176631430256, guid: d1a1c800933dbb7238e95053b085ff41, type: 3}
   m_PrefabInstance: {fileID: 8361173486836349114}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1302209706
+--- !u!114 &1302209706 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 1340295861330879960, guid: d1a1c800933dbb7238e95053b085ff41, type: 3}
+  m_PrefabInstance: {fileID: 8361173486836349114}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1302209699}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31598dafdb410f0bfbb219afaa5c9615, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MutedMelody.Stats::MutedMelody.Stats.MelodyStaff
-  _data: {fileID: 11400000, guid: a0fdccf5a37b29d89a4845c156bb29f1, type: 2}
---- !u!114 &1302209707
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1302209699}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2549e6898c72da959b8c40ca732a126d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MutedMelody.Player::MutedMelody.Player.Abilities.CrescendoDash
-  _dashDuration: 0.18
-  _dashSpeed: 35
-  _dashCooldown: 0.5
-  _melodyData: {fileID: 11400000, guid: a0fdccf5a37b29d89a4845c156bb29f1, type: 2}
 --- !u!1 &1397363881
 GameObject:
   m_ObjectHideFlags: 0
@@ -1162,7 +1170,7 @@ Transform:
   m_GameObject: {fileID: 1693354249}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.3573079, y: 1.5292301, z: -7}
+  m_LocalPosition: {x: 0.3823981, y: 1.5292301, z: -7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1360,8 +1368,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e81f2169dd7cc904dbd93e21ffd8ddcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MutedMelody.UI::MutedMelody.UI.MelodyStaffUI
+  _melodyStaff: {fileID: 1302209706}
   _fillImage: {fileID: 1809197290}
-  _container: {fileID: 925488977}
+  _pulseTarget: {fileID: 925488977}
   _normalColor: {r: 1, g: 1, b: 1, a: 1}
   _criticalColor: {r: 1, g: 0, b: 1, a: 1}
   _criticalPulseSpeed: 5
@@ -1699,13 +1708,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2075743189439281641, guid: d1a1c800933dbb7238e95053b085ff41, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1302209706}
-    - targetCorrespondingSourceObject: {fileID: 2075743189439281641, guid: d1a1c800933dbb7238e95053b085ff41, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1302209707}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d1a1c800933dbb7238e95053b085ff41, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -1722,3 +1725,4 @@ SceneRoots:
   - {fileID: 1102814923}
   - {fileID: 1839407183}
   - {fileID: 909731244}
+  - {fileID: 690606532}

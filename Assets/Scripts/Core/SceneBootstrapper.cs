@@ -1,12 +1,10 @@
 namespace MutedMelody.Core
 {
     /// <summary>
-    /// Drop this component into any gameplay scene (e.g., DevTestScene, Biomes) 
-    /// to guarantee managers load when pressing Play directly from that scene.
+    /// Optional editor fallback. The real bootstrap now happens through BootLoader's
+    /// RuntimeInitializeOnLoadMethod(BeforeSceneLoad), so this component can stay empty.
     /// </summary>
     public class SceneBootstrapper : BootLoader
     {
-        // Inherits the Awake() logic from BootLoader. 
-        // No additional code is needed!
     }
 }

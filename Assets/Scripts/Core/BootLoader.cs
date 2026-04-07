@@ -4,31 +4,44 @@ using UnityEngine.SceneManagement;
 namespace MutedMelody.Core
 {
     /// <summary>
-    /// Core system responsible for ensuring the PersistentManagers scene is loaded.
+    /// Ensures PersistentManagers is loaded before gameplay scripts start relying on manager singletons.
+    /// RuntimeInitializeOnLoadMethod(BeforeSceneLoad) runs before any Awake in the first scene.
     /// </summary>
     public class BootLoader : MonoBehaviour
     {
-        private const string MANAGERS_SCENE_NAME = "PersistentManagers";
+        public const string ManagersSceneName = "PersistentManagers";
+        private static bool _requestedLoad;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void EnsureManagersSceneLoadedBeforeSceneAwake()
+        {
+            LoadManagersSceneIfNeeded();
+        }
 
         protected virtual void Awake()
         {
-            if (!IsManagerSceneLoaded())
-            {
-                Debug.Log($"[BootLoader] {MANAGERS_SCENE_NAME} not found. Loading additively...");
-                SceneManager.LoadScene(MANAGERS_SCENE_NAME, LoadSceneMode.Additive);
-            }
+            // Fallback for editor/dev situations where this object exists in a scene opened directly.
+            LoadManagersSceneIfNeeded();
         }
 
-        private bool IsManagerSceneLoaded()
+        private static void LoadManagersSceneIfNeeded()
         {
-            // Iterate through all currently loaded scenes to see if our managers are already there
+            if (_requestedLoad || IsManagerSceneLoaded())
+                return;
+
+            _requestedLoad = true;
+            SceneManager.LoadScene(ManagersSceneName, LoadSceneMode.Additive);
+            Debug.Log($"[BootLoader] Requested additive load for '{ManagersSceneName}'.");
+        }
+
+        private static bool IsManagerSceneLoaded()
+        {
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
-                if (SceneManager.GetSceneAt(i).name == MANAGERS_SCENE_NAME)
-                {
+                if (SceneManager.GetSceneAt(i).name == ManagersSceneName)
                     return true;
-                }
             }
+
             return false;
         }
     }

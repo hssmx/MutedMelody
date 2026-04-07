@@ -2,23 +2,25 @@ using UnityEngine;
 using UnityEngine.UI;
 using MutedMelody.Core;
 using MutedMelody.Core.Events;
+using MutedMelody.Stats;
 
 namespace MutedMelody.UI
 {
     public class MelodyStaffUI : MonoBehaviour
     {
+        [Header("References")]
+        [SerializeField] private MelodyStaff _melodyStaff;
         [SerializeField] private Image _fillImage;
         [SerializeField] private RectTransform _pulseTarget;
+
+        [Header("Visuals")]
         [SerializeField] private Color _normalColor = Color.white;
-        [SerializeField] private Color _criticalColor = new Color(1f, 0.2f, 0.6f, 1f);
-        [SerializeField] private float _beatPulseScale = 1.04f;
-        [SerializeField] private float _recoverSpeed = 8f;
-        [SerializeField] private float _criticalPulseSpeed = 6f;
-        [SerializeField] private float _criticalPulseAmount = 0.15f;
+        [SerializeField] private Color _criticalColor = Color.magenta;
+        [SerializeField] private float _criticalPulseSpeed = 5f;
+        [SerializeField] private float _beatPulseScale = 1.05f;
+        [SerializeField] private float _beatReturnSpeed = 10f;
 
         private Vector3 _baseScale = Vector3.one;
-        private float _targetFill;
-        private bool _isCritical;
 
         private void Awake()
         {
@@ -35,43 +37,38 @@ namespace MutedMelody.UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<MelodyStaffChangedEvent>(OnMelodyChanged);
+            EventBus.Subscribe<MelodyStaffChangedEvent>(OnMelodyStaffChanged);
             EventBus.Subscribe<BeatEvent>(OnBeat);
+
+            if (_melodyStaff != null)
+            {
+                ApplyVisuals(_melodyStaff.CurrentMelody, _melodyStaff.NormalizedMelody, _melodyStaff.IsCritical);
+            }
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<MelodyStaffChangedEvent>(OnMelodyChanged);
+            EventBus.Unsubscribe<MelodyStaffChangedEvent>(OnMelodyStaffChanged);
             EventBus.Unsubscribe<BeatEvent>(OnBeat);
         }
 
         private void Update()
         {
-            if (_fillImage != null)
-            {
-                _fillImage.fillAmount = Mathf.MoveTowards(_fillImage.fillAmount, _targetFill, _recoverSpeed * Time.unscaledDeltaTime);
-
-                if (_isCritical)
-                {
-                    float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * _criticalPulseSpeed);
-                    _fillImage.color = Color.Lerp(_normalColor, _criticalColor, pulse * _criticalPulseAmount + (1f - _criticalPulseAmount));
-                }
-                else
-                {
-                    _fillImage.color = _normalColor;
-                }
-            }
-
             if (_pulseTarget != null)
             {
-                _pulseTarget.localScale = Vector3.Lerp(_pulseTarget.localScale, _baseScale, _recoverSpeed * Time.unscaledDeltaTime);
+                _pulseTarget.localScale = Vector3.Lerp(_pulseTarget.localScale, _baseScale, _beatReturnSpeed * Time.unscaledDeltaTime);
+            }
+
+            if (_melodyStaff != null && _melodyStaff.IsCritical && _fillImage != null)
+            {
+                float t = 0.5f + (Mathf.Sin(Time.unscaledTime * _criticalPulseSpeed) * 0.5f);
+                _fillImage.color = Color.Lerp(_normalColor, _criticalColor, t);
             }
         }
 
-        private void OnMelodyChanged(MelodyStaffChangedEvent evt)
+        private void OnMelodyStaffChanged(MelodyStaffChangedEvent evt)
         {
-            _targetFill = evt.NormalizedMelody;
-            _isCritical = evt.IsCritical;
+            ApplyVisuals(evt.CurrentMelody, evt.NormalizedMelody, evt.IsCritical);
         }
 
         private void OnBeat(BeatEvent evt)
@@ -79,6 +76,15 @@ namespace MutedMelody.UI
             if (_pulseTarget != null)
             {
                 _pulseTarget.localScale = _baseScale * _beatPulseScale;
+            }
+        }
+
+        private void ApplyVisuals(float currentMelody, float normalizedMelody, bool isCritical)
+        {
+            if (_fillImage != null)
+            {
+                _fillImage.fillAmount = Mathf.Clamp01(normalizedMelody);
+                _fillImage.color = isCritical ? _criticalColor : _normalColor;
             }
         }
     }

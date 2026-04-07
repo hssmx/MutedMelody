@@ -1,3 +1,4 @@
+using MutedMelody.Core.Events;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using MutedMelody.Stats;
@@ -16,26 +17,35 @@ namespace MutedMelody.Player.Abilities
         
         public bool IsTuning { get; private set; }
         private bool _isHoldingInput;
-        
-        private void OnEnable()
+
+        private void Awake()
+        {
+            if (_melodyData == null)
+            {
+                Debug.LogError($"[TuneHeal] MelodyData is MISSING on {gameObject.name}! Disabling ability.");
+                this.enabled = false;
+                return;
+            }
+
+            _player = GetComponent<PlayerController>();
+            _melodyStaff = GetComponent<MelodyStaff>();
+        }
+
+        private void Start()
         {
             InputManager.Instance.Gameplay.Tune.started += OnTuneInput;
             InputManager.Instance.Gameplay.Tune.canceled += OnTuneInput;
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
-            InputManager.Instance.Gameplay.Tune.started -= OnTuneInput;
-            InputManager.Instance.Gameplay.Tune.canceled -= OnTuneInput;
+            if (InputManager.Instance != null)
+            {
+                InputManager.Instance.Gameplay.Tune.started -= OnTuneInput;
+                InputManager.Instance.Gameplay.Tune.canceled -= OnTuneInput;
+            }
         }
 
-        private void Awake()
-        {
-            _player = GetComponent<PlayerController>();
-            _melodyStaff = GetComponent<MelodyStaff>();
-        }
-
-        // Call this from your Input Manager or UnityEvent
         public void OnTuneInput(InputAction.CallbackContext context)
         {
             if (context.started) _isHoldingInput = true;
@@ -48,20 +58,30 @@ namespace MutedMelody.Player.Abilities
 
         private void Update()
         {
-            float drainRate = _melodyData != null ? _melodyData.tuneDrain : 15f;
+            float drainRate = _melodyData.tuneDrainPerSecond;
             
-            if (_isHoldingInput && _player.State.IsGrounded && _melodyStaff.CanAfford(drainRate * Time.deltaTime))
+            if (_isHoldingInput && _player.IsGrounded)
             {
-                if (!IsTuning) StartTuning();
+                if (!IsTuning)
+                {
+                    if (_player.IsMovementLocked) return; 
+                    
+                    if (_melodyStaff.CanAfford(drainRate * Time.deltaTime))
+                    {
+                        StartTuning();
+                    }
+                }
                 
-                // Drain Melody over time
-                _melodyStaff.RemoveMelody(drainRate * Time.deltaTime);
-                
-                // TODO (Phase 9): Publish PlayerHealEvent based on _melodyData.tuneHeal
+                if (IsTuning)
+                {
+                    if (!_melodyStaff.TrySpend(drainRate * Time.deltaTime, MelodyChangeReason.TuneSpend))
+                    {
+                        StopTuning(); 
+                    }
+                }
             }
             else if (IsTuning)
             {
-                // Force stop if they run out of melody, let go, or fall off a ledge
                 StopTuning();
             }
         }
@@ -69,14 +89,14 @@ namespace MutedMelody.Player.Abilities
         private void StartTuning()
         {
             IsTuning = true;
-            _player.IsMovementLocked = true; // Freeze player in place
+            _player.AddMovementLock(); 
             _player.GetComponent<Rigidbody2D>().linearVelocity = Vector2.zero;
         }
 
         private void StopTuning()
         {
             IsTuning = false;
-            _player.IsMovementLocked = false;
+            _player.RemoveMovementLock();
         }
     }
 }

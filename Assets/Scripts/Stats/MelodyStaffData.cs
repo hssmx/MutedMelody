@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MutedMelody.Stats
 {
@@ -16,12 +17,15 @@ namespace MutedMelody.Stats
 
         [Header("Combat")]
         [Min(0f)] public float enemyKillReward = 15f;
-        [Min(0f)] public float damageAmount = 20f;
 
         [Header("Abilities")]
-        [Min(0f)] public float tuneDrain = 15f;
-        [Min(0f)] public float tuneHeal = 20f;
         [Min(0f)] public float dashCost = 25f;
+
+        [FormerlySerializedAs("tuneDrain")]
+        [Min(0f)] public float tuneDrainPerSecond = 15f;
+
+        [FormerlySerializedAs("tuneHeal")]
+        [Min(0f)] public float tuneHealPerSecond = 20f;
 
         [Header("Respawn")]
         [Range(0f, 1f)] public float respawnPercent = 0.5f;

@@ -12,7 +12,10 @@ namespace MutedMelody.Stats
         public float MaxMelody => _data != null ? _data.maxMelody : 0f;
         public float NormalizedMelody => MaxMelody <= 0f ? 0f : CurrentMelody / MaxMelody;
         public bool IsCritical => _data != null && NormalizedMelody <= _data.criticalThreshold;
-        public bool IsDead { get; private set; }
+        public bool IsEmpty => CurrentMelody <= 0f;
+
+        // Kept for compatibility with existing code until the dedicated health system lands.
+        public bool IsDead => false;
 
         private bool _isInitialized;
 
@@ -46,19 +49,18 @@ namespace MutedMelody.Stats
         public void Initialize()
         {
             CurrentMelody = Mathf.Clamp(_data.startingMelody, 0f, _data.maxMelody);
-            IsDead = CurrentMelody <= 0f;
             _isInitialized = true;
             PublishState(CurrentMelody, MelodyChangeReason.Initialize);
         }
 
-        public bool CanAfford(float cost)
+        public bool CanAfford(float amount)
         {
-            return !IsDead && cost > 0f && CurrentMelody >= cost;
+            return amount > 0f && CurrentMelody >= amount;
         }
 
         public bool TrySpend(float amount, MelodyChangeReason reason)
         {
-            if (!_isInitialized || IsDead || amount <= 0f)
+            if (!_isInitialized || amount <= 0f)
             {
                 return false;
             }
@@ -74,7 +76,7 @@ namespace MutedMelody.Stats
 
         public void Reward(float amount, MelodyChangeReason reason)
         {
-            if (!_isInitialized || IsDead || amount <= 0f)
+            if (!_isInitialized || amount <= 0f)
             {
                 return;
             }
@@ -82,9 +84,10 @@ namespace MutedMelody.Stats
             SetMelodyInternal(CurrentMelody + amount, reason);
         }
 
+        // Temporary compatibility method until damage is rerouted to PlayerHealth in the later phase.
         public void ApplyDamage(float amount)
         {
-            if (!_isInitialized || IsDead || amount <= 0f)
+            if (!_isInitialized || amount <= 0f)
             {
                 return;
             }
@@ -94,18 +97,22 @@ namespace MutedMelody.Stats
 
         public void RewardEnemyKill()
         {
+            if (_data == null)
+            {
+                return;
+            }
+
             Reward(_data.enemyKillReward, MelodyChangeReason.EnemyKill);
         }
 
         public void ResetForRespawn()
         {
-            if (!_isInitialized)
+            if (!_isInitialized || _data == null)
             {
                 return;
             }
 
-            IsDead = false;
-            SetMelodyInternal(_data.maxMelody * _data.respawnPercent, MelodyChangeReason.RespawnReset, false);
+            SetMelodyInternal(_data.maxMelody * _data.respawnPercent, MelodyChangeReason.RespawnReset);
         }
 
         public void DebugSetValue(float value)
@@ -115,12 +122,16 @@ namespace MutedMelody.Stats
                 return;
             }
 
-            IsDead = false;
             SetMelodyInternal(value, MelodyChangeReason.DebugSet);
         }
 
         private void OnPlayerPlatformJudged(PlayerPlatformJudgedEvent evt)
         {
+            if (_data == null)
+            {
+                return;
+            }
+
             switch (evt.Result)
             {
                 case JudgmentResult.Perfect:
@@ -133,21 +144,13 @@ namespace MutedMelody.Stats
             }
         }
 
-        private void SetMelodyInternal(float targetValue, MelodyChangeReason reason, bool allowDeathCheck = true)
+        private void SetMelodyInternal(float targetValue, MelodyChangeReason reason)
         {
             float previous = CurrentMelody;
             CurrentMelody = Mathf.Clamp(targetValue, 0f, _data.maxMelody);
 
             if (Mathf.Approximately(previous, CurrentMelody))
             {
-                return;
-            }
-
-            if (allowDeathCheck && !IsDead && CurrentMelody <= 0f)
-            {
-                IsDead = true;
-                PublishState(previous, reason);
-                EventBus.Publish(new PlayerDeathEvent());
                 return;
             }
 
@@ -162,7 +165,8 @@ namespace MutedMelody.Stats
                 CurrentMelody = CurrentMelody,
                 NormalizedMelody = NormalizedMelody,
                 IsCritical = IsCritical,
-                IsDead = IsDead,
+                IsEmpty = IsEmpty,
+                IsDead = false,
                 Reason = reason
             });
         }

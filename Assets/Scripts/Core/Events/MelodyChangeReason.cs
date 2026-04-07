@@ -1,3 +1,5 @@
+using MutedMelody.Core;
+
 namespace MutedMelody.Core.Events
 {
     public enum MelodyChangeReason

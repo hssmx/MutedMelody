@@ -6,6 +6,7 @@ namespace MutedMelody.Core.Events
         public float CurrentMelody;
         public float NormalizedMelody;
         public bool IsCritical;
+        public bool IsEmpty;
         public bool IsDead;
         public MelodyChangeReason Reason;
     }

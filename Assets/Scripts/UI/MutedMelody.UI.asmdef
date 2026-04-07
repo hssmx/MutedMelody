@@ -3,7 +3,7 @@
     "rootNamespace": "MutedMelody.UI",
     "references": [
         "MutedMelody.Core",
-        "Unity.UGUI"
+        "MutedMelody.Stats"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
