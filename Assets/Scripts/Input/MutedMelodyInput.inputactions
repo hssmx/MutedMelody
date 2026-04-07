@@ -34,7 +34,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "CrescendoDash",
+                    "name": "Dash",
                     "type": "Button",
                     "id": "c43866ab-d4c9-415e-81a2-d5dfb71b5b49",
                     "expectedControlType": "",
@@ -234,7 +234,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "CrescendoDash",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -245,7 +245,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "CrescendoDash",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

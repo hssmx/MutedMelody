@@ -5,185 +5,209 @@ using MutedMelody.Platforms;
 
 namespace MutedMelody.Player
 {
-    [RequireComponent(typeof(Rigidbody2D), typeof(BoxCollider2D), typeof(SpriteRenderer))]
+    [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerController : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private PlayerMovementData _data;
-        [SerializeField] private LayerMask _groundLayer;
+        [SerializeField] private PlayerMovementData _movementData;
+        [SerializeField] private InputManager _inputManager;
+        [SerializeField] private InputBuffer _inputBuffer;
         [SerializeField] private NotePlatformManager _platformManager;
-        
-        [Header("State Data")]
-        public PlayerStateData State = new PlayerStateData();
+        [SerializeField] private Transform _groundCheck;
+        [SerializeField] private LayerMask _groundLayer;
+
+        [Header("Debug")]
+        [SerializeField] private bool _drawGroundCheck = true;
 
         private Rigidbody2D _rb;
-        private BoxCollider2D _collider;
+        private float _moveInput;
+        private bool _isGrounded;
+        private bool _jumpHeld;
+        private float _lastGroundedTime;
         private SpriteRenderer _spriteRenderer;
-        private InputBuffer _inputBuffer;
-
-        private float _coyoteTimer;
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
-            _collider = GetComponent<BoxCollider2D>();
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-            _inputBuffer = InputBuffer.Instance;
+            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
-            // Prevent unwanted physics rotations
-            _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            if (_movementData == null)
+            {
+                Debug.LogError("[PlayerController] Missing PlayerMovementData reference.", this);
+                enabled = false;
+            }
         }
 
         private void OnEnable()
         {
-            if (InputManager.Instance != null)
+            if (_inputManager == null)
             {
-                InputManager.Instance.Gameplay.Jump.performed += OnJumpPerformed;
-                InputManager.Instance.Gameplay.Jump.canceled += OnJumpCanceled;
+                return;
             }
+
+            _inputManager.JumpPerformed += OnJumpPerformed;
+            _inputManager.JumpCanceled += OnJumpCanceled;
+            _inputManager.PlatformSpawnPerformed += OnPlatformSpawnPerformed;
         }
 
         private void OnDisable()
         {
-            if (InputManager.Instance != null)
+            if (_inputManager == null)
             {
-                InputManager.Instance.Gameplay.Jump.performed -= OnJumpPerformed;
-                InputManager.Instance.Gameplay.Jump.canceled -= OnJumpCanceled;
+                return;
             }
+
+            _inputManager.JumpPerformed -= OnJumpPerformed;
+            _inputManager.JumpCanceled -= OnJumpCanceled;
+            _inputManager.PlatformSpawnPerformed -= OnPlatformSpawnPerformed;
+        }
+
+        private void Update()
+        {
+            if (_inputManager == null)
+            {
+                return;
+            }
+
+            _moveInput = _inputManager.MoveInput.x;
+            UpdateGroundedState();
+            UpdateFacing();
+
+            if (_isGrounded)
+            {
+                _lastGroundedTime = Time.time;
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            ApplyHorizontalMovement();
+            HandleBufferedJump();
+            ApplyBetterJumpGravity();
+            ClampFallSpeed();
         }
 
         private void OnJumpPerformed(InputAction.CallbackContext context)
         {
-            _inputBuffer.QueueJump();
+            _jumpHeld = true;
+
+            if (_inputBuffer != null)
+            {
+                _inputBuffer.BufferJump();
+            }
         }
 
         private void OnJumpCanceled(InputAction.CallbackContext context)
         {
-            State.IsJumping = false;
-        }
-        
-        private void Update()
-        {
-            if (!State.IsAlive) return;
-
-            // Read Movement and Jump Inputs Safely
-            if (InputManager.Instance != null)
-            {
-                State.CurrentMoveInput = InputManager.Instance.Gameplay.Move.ReadValue<Vector2>();
-
-                if (InputManager.Instance.Gameplay.Jump.WasPressedThisFrame())
-                {
-                    if (InputBuffer.Instance != null) InputBuffer.Instance.QueueJump();
-                }
-
-                if (InputManager.Instance.Gameplay.Jump.WasReleasedThisFrame())
-                {
-                    State.IsJumping = false;
-                }
-            }
-
-            CheckGrounded();
-
-            // Update coyote timer
-            if (State.IsGrounded)
-            {
-                _coyoteTimer = _data.coyoteTime;
-            }
-            else
-            {
-                _coyoteTimer -= Time.deltaTime;
-            }
-
-            // Implement Jump Execution Logic Safely
-            if (InputBuffer.Instance != null && InputBuffer.Instance.ConsumeJump() && (State.IsGrounded || _coyoteTimer > 0f))
-            {
-                ExecuteJump();
-            }
-            
-            if (InputManager.Instance.Gameplay.SpawnPlatform.WasPressedThisFrame())
-            {
-                if (_platformManager != null) _platformManager.SpawnPlatform();
-            }
-
-            // Implement Sprite Flipping
-            if (State.CurrentMoveInput.x > 0) _spriteRenderer.flipX = false;
-            else if (State.CurrentMoveInput.x < 0) _spriteRenderer.flipX = true;
-
-            // Update Velocity State
-            State.Velocity = _rb.linearVelocity;
-        }
-        private void FixedUpdate()
-        {
-            if (!State.IsAlive) return;
-
-            // P03.19: FixedUpdate Structure
-            CalculateHorizontalMovement();
-            CalculateVariableGravity();
+            _jumpHeld = false;
         }
 
-        private void ExecuteJump()
+        private void OnPlatformSpawnPerformed(InputAction.CallbackContext context)
         {
-            _coyoteTimer = 0f;
-            State.IsJumping = true;
+            if (_platformManager == null)
+            {
+                return;
+            }
 
-            // Reset Y velocity before jumping so downward momentum doesn't eat the jump force
-            _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _data.jumpForce);
+            _platformManager.SpawnPlatform();
         }
 
-        // P03.20: Implement Horizontal Movement
-        private void CalculateHorizontalMovement()
+        private void ApplyHorizontalMovement()
         {
-            float targetSpeed = State.CurrentMoveInput.x * _data.maxSpeed;
-            float speedDif = targetSpeed - _rb.linearVelocity.x;
+            float targetSpeed = _moveInput * _movementData.moveSpeed;
+            float accel = Mathf.Abs(targetSpeed) > 0.01f ? _movementData.acceleration : _movementData.deceleration;
+            float newVelocityX = Mathf.MoveTowards(_rb.linearVelocity.x, targetSpeed, accel * Time.fixedDeltaTime);
 
-            // Calculate acceleration rate based on whether we are speeding up or slowing down
-            float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? (1 / _data.accelerationTime) : (1 / _data.decelerationTime);
-            
-            float movement = speedDif * accelRate;
-            _rb.AddForce(movement * Vector2.right, ForceMode2D.Force);
+            _rb.linearVelocity = new Vector2(newVelocityX, _rb.linearVelocity.y);
         }
 
-        // P03.21 & P03.22: Variable Gravity & Fall Clamping
-        private void CalculateVariableGravity()
+        private void HandleBufferedJump()
         {
-            // Falling
-            if (_rb.linearVelocity.y < 0)
+            if (_inputBuffer == null)
             {
-                _rb.gravityScale = _data.gravityScale * _data.fallMultiplier;
-                
-                // P03.22: Fall Speed Clamping
-                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, Mathf.Max(_rb.linearVelocity.y, _data.maxFallSpeed));
+                return;
             }
-            // Rising + Jump Released (Variable Jump Height)
-            else if (_rb.linearVelocity.y > 0 && !State.IsJumping)
+
+            if (!_inputBuffer.HasBufferedJump())
             {
-                _rb.gravityScale = _data.gravityScale * _data.jumpCutMultiplier;
+                return;
             }
-            // Rising + Jump Held (Full Jump)
-            else
+
+            bool canUseCoyoteTime = (Time.time - _lastGroundedTime) <= _movementData.coyoteTime;
+
+            if (_isGrounded || canUseCoyoteTime)
             {
-                _rb.gravityScale = _data.gravityScale;
+                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _movementData.jumpForce);
+                _isGrounded = false;
+                _inputBuffer.ConsumeJump();
             }
         }
 
-        private void CheckGrounded()
+        private void ApplyBetterJumpGravity()
         {
-            Vector2 boxCenter = (Vector2)_collider.bounds.center + Vector2.down * (_collider.bounds.extents.y - 0.05f);
-            Vector2 boxSize = new Vector2(_collider.bounds.size.x * 0.9f, 0.1f);
-            
-            State.IsGrounded = Physics2D.BoxCast(boxCenter, boxSize, 0f, Vector2.down, 0.1f, _groundLayer);
+            Vector2 velocity = _rb.linearVelocity;
+
+            if (velocity.y > 0.01f)
+            {
+                float gravityMultiplier = _jumpHeld ? _movementData.ascendGravityMultiplier : _movementData.jumpCutGravityMultiplier;
+                velocity.y += Physics2D.gravity.y * (gravityMultiplier - 1f) * Time.fixedDeltaTime;
+            }
+            else if (velocity.y < -0.01f)
+            {
+                velocity.y += Physics2D.gravity.y * (_movementData.fallGravityMultiplier - 1f) * Time.fixedDeltaTime;
+            }
+
+            _rb.linearVelocity = velocity;
+        }
+
+        private void ClampFallSpeed()
+        {
+            Vector2 velocity = _rb.linearVelocity;
+
+            if (velocity.y < -_movementData.maxFallSpeed)
+            {
+                velocity.y = -_movementData.maxFallSpeed;
+                _rb.linearVelocity = velocity;
+            }
+        }
+
+        private void UpdateGroundedState()
+        {
+            if (_groundCheck == null)
+            {
+                _isGrounded = false;
+                return;
+            }
+
+            _isGrounded = Physics2D.OverlapCircle(_groundCheck.position, _movementData.groundCheckRadius, _groundLayer);
+        }
+
+        private void UpdateFacing()
+        {
+            if (_spriteRenderer == null)
+            {
+                return;
+            }
+
+            if (_moveInput > 0.01f)
+            {
+                _spriteRenderer.flipX = false;
+            }
+            else if (_moveInput < -0.01f)
+            {
+                _spriteRenderer.flipX = true;
+            }
         }
 
         private void OnDrawGizmosSelected()
         {
-            if (_collider == null) _collider = GetComponent<BoxCollider2D>();
-            if (_collider != null)
+            if (!_drawGroundCheck || _groundCheck == null || _movementData == null)
             {
-                Gizmos.color = Color.red;
-                Vector2 boxCenter = (Vector2)_collider.bounds.center + Vector2.down * (_collider.bounds.extents.y - 0.05f);
-                Vector2 boxSize = new Vector2(_collider.bounds.size.x * 0.9f, 0.1f);
-                Gizmos.DrawWireCube(boxCenter + Vector2.down * 0.1f, boxSize);
+                return;
             }
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(_groundCheck.position, _movementData.groundCheckRadius);
         }
     }
 }

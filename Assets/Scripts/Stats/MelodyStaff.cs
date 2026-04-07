@@ -9,85 +9,161 @@ namespace MutedMelody.Stats
         [SerializeField] private MelodyStaffData _data;
 
         public float CurrentMelody { get; private set; }
-        public float NormalizedMelody => CurrentMelody / _data.maxMelody;
-        public bool IsCritical => NormalizedMelody <= 0.25f;
+        public float MaxMelody => _data != null ? _data.maxMelody : 0f;
+        public float NormalizedMelody => MaxMelody <= 0f ? 0f : CurrentMelody / MaxMelody;
+        public bool IsCritical => _data != null && NormalizedMelody <= _data.criticalThreshold;
         public bool IsDead { get; private set; }
 
-        private void Start()
+        private bool _isInitialized;
+
+        private void Awake()
         {
+            if (_data == null)
+            {
+                Debug.LogError("[MelodyStaff] Missing MelodyStaffData reference.", this);
+                enabled = false;
+                return;
+            }
+
             Initialize();
         }
 
         private void OnEnable()
         {
-            EventBus.Subscribe<JudgmentEvent>(OnBeatJudgment);
+            EventBus.Subscribe<PlayerPlatformJudgedEvent>(OnPlayerPlatformJudged);
+
+            if (_isInitialized)
+            {
+                PublishState(CurrentMelody, MelodyChangeReason.Initialize);
+            }
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<JudgmentEvent>(OnBeatJudgment);
+            EventBus.Unsubscribe<PlayerPlatformJudgedEvent>(OnPlayerPlatformJudged);
         }
 
         public void Initialize()
         {
-            CurrentMelody = _data.startingMelody;
-            IsDead = false;
-            PublishState();
-        }
-
-        public void AddMelody(float amount)
-        {
-            if (IsDead) return;
-            
-            CurrentMelody = Mathf.Clamp(CurrentMelody + amount, 0, _data.maxMelody);
-            PublishState();
-        }
-
-        public void RemoveMelody(float amount)
-        {
-            if (IsDead) return;
-
-            CurrentMelody = Mathf.Clamp(CurrentMelody - amount, 0, _data.maxMelody);
-            PublishState();
-
-            if (CurrentMelody <= 0)
-            {
-                IsDead = true;
-                EventBus.Publish(new PlayerDeathEvent());
-            }
+            CurrentMelody = Mathf.Clamp(_data.startingMelody, 0f, _data.maxMelody);
+            IsDead = CurrentMelody <= 0f;
+            _isInitialized = true;
+            PublishState(CurrentMelody, MelodyChangeReason.Initialize);
         }
 
         public bool CanAfford(float cost)
         {
-            return CurrentMelody >= cost;
+            return !IsDead && cost > 0f && CurrentMelody >= cost;
+        }
+
+        public bool TrySpend(float amount, MelodyChangeReason reason)
+        {
+            if (!_isInitialized || IsDead || amount <= 0f)
+            {
+                return false;
+            }
+
+            if (CurrentMelody < amount)
+            {
+                return false;
+            }
+
+            SetMelodyInternal(CurrentMelody - amount, reason);
+            return true;
+        }
+
+        public void Reward(float amount, MelodyChangeReason reason)
+        {
+            if (!_isInitialized || IsDead || amount <= 0f)
+            {
+                return;
+            }
+
+            SetMelodyInternal(CurrentMelody + amount, reason);
+        }
+
+        public void ApplyDamage(float amount)
+        {
+            if (!_isInitialized || IsDead || amount <= 0f)
+            {
+                return;
+            }
+
+            SetMelodyInternal(CurrentMelody - amount, MelodyChangeReason.Damage);
+        }
+
+        public void RewardEnemyKill()
+        {
+            Reward(_data.enemyKillReward, MelodyChangeReason.EnemyKill);
         }
 
         public void ResetForRespawn()
         {
-            CurrentMelody = _data.maxMelody * _data.respawnPercent;
+            if (!_isInitialized)
+            {
+                return;
+            }
+
             IsDead = false;
-            PublishState();
+            SetMelodyInternal(_data.maxMelody * _data.respawnPercent, MelodyChangeReason.RespawnReset, false);
         }
 
-        private void OnBeatJudgment(JudgmentEvent evt)
+        public void DebugSetValue(float value)
         {
-            if (evt.Result == MutedMelody.Core.Events.JudgmentResult.Perfect)
+            if (!_isInitialized)
             {
-                AddMelody(_data.perfectBeatReward);
+                return;
             }
-            else if (evt.Result == MutedMelody.Core.Events.JudgmentResult.Good)
+
+            IsDead = false;
+            SetMelodyInternal(value, MelodyChangeReason.DebugSet);
+        }
+
+        private void OnPlayerPlatformJudged(PlayerPlatformJudgedEvent evt)
+        {
+            switch (evt.Result)
             {
-                AddMelody(_data.goodBeatReward);
+                case JudgmentResult.Perfect:
+                    Reward(_data.perfectBeatReward, MelodyChangeReason.PerfectPlatformBeat);
+                    break;
+
+                case JudgmentResult.Good:
+                    Reward(_data.goodBeatReward, MelodyChangeReason.GoodPlatformBeat);
+                    break;
             }
         }
 
-        private void PublishState()
+        private void SetMelodyInternal(float targetValue, MelodyChangeReason reason, bool allowDeathCheck = true)
+        {
+            float previous = CurrentMelody;
+            CurrentMelody = Mathf.Clamp(targetValue, 0f, _data.maxMelody);
+
+            if (Mathf.Approximately(previous, CurrentMelody))
+            {
+                return;
+            }
+
+            if (allowDeathCheck && !IsDead && CurrentMelody <= 0f)
+            {
+                IsDead = true;
+                PublishState(previous, reason);
+                EventBus.Publish(new PlayerDeathEvent());
+                return;
+            }
+
+            PublishState(previous, reason);
+        }
+
+        private void PublishState(float previousValue, MelodyChangeReason reason)
         {
             EventBus.Publish(new MelodyStaffChangedEvent
             {
+                PreviousMelody = previousValue,
                 CurrentMelody = CurrentMelody,
                 NormalizedMelody = NormalizedMelody,
-                IsCritical = IsCritical
+                IsCritical = IsCritical,
+                IsDead = IsDead,
+                Reason = reason
             });
         }
     }

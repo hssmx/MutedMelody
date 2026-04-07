@@ -120,7 +120,7 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""CrescendoDash"",
+                    ""name"": ""Dash"",
                     ""type"": ""Button"",
                     ""id"": ""c43866ab-d4c9-415e-81a2-d5dfb71b5b49"",
                     ""expectedControlType"": """",
@@ -320,7 +320,7 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""CrescendoDash"",
+                    ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -331,7 +331,7 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""CrescendoDash"",
+                    ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -629,7 +629,7 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
         m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
         m_Gameplay_Jump = m_Gameplay.FindAction("Jump", throwIfNotFound: true);
         m_Gameplay_SpawnPlatform = m_Gameplay.FindAction("SpawnPlatform", throwIfNotFound: true);
-        m_Gameplay_CrescendoDash = m_Gameplay.FindAction("CrescendoDash", throwIfNotFound: true);
+        m_Gameplay_Dash = m_Gameplay.FindAction("Dash", throwIfNotFound: true);
         m_Gameplay_Tune = m_Gameplay.FindAction("Tune", throwIfNotFound: true);
         m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
         // UI
@@ -723,7 +723,7 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Move;
     private readonly InputAction m_Gameplay_Jump;
     private readonly InputAction m_Gameplay_SpawnPlatform;
-    private readonly InputAction m_Gameplay_CrescendoDash;
+    private readonly InputAction m_Gameplay_Dash;
     private readonly InputAction m_Gameplay_Tune;
     private readonly InputAction m_Gameplay_Pause;
     /// <summary>
@@ -750,9 +750,9 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @SpawnPlatform => m_Wrapper.m_Gameplay_SpawnPlatform;
         /// <summary>
-        /// Provides access to the underlying input action "Gameplay/CrescendoDash".
+        /// Provides access to the underlying input action "Gameplay/Dash".
         /// </summary>
-        public InputAction @CrescendoDash => m_Wrapper.m_Gameplay_CrescendoDash;
+        public InputAction @Dash => m_Wrapper.m_Gameplay_Dash;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Tune".
         /// </summary>
@@ -796,9 +796,9 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
             @SpawnPlatform.started += instance.OnSpawnPlatform;
             @SpawnPlatform.performed += instance.OnSpawnPlatform;
             @SpawnPlatform.canceled += instance.OnSpawnPlatform;
-            @CrescendoDash.started += instance.OnCrescendoDash;
-            @CrescendoDash.performed += instance.OnCrescendoDash;
-            @CrescendoDash.canceled += instance.OnCrescendoDash;
+            @Dash.started += instance.OnDash;
+            @Dash.performed += instance.OnDash;
+            @Dash.canceled += instance.OnDash;
             @Tune.started += instance.OnTune;
             @Tune.performed += instance.OnTune;
             @Tune.canceled += instance.OnTune;
@@ -825,9 +825,9 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
             @SpawnPlatform.started -= instance.OnSpawnPlatform;
             @SpawnPlatform.performed -= instance.OnSpawnPlatform;
             @SpawnPlatform.canceled -= instance.OnSpawnPlatform;
-            @CrescendoDash.started -= instance.OnCrescendoDash;
-            @CrescendoDash.performed -= instance.OnCrescendoDash;
-            @CrescendoDash.canceled -= instance.OnCrescendoDash;
+            @Dash.started -= instance.OnDash;
+            @Dash.performed -= instance.OnDash;
+            @Dash.canceled -= instance.OnDash;
             @Tune.started -= instance.OnTune;
             @Tune.performed -= instance.OnTune;
             @Tune.canceled -= instance.OnTune;
@@ -1036,12 +1036,12 @@ public partial class @MutedMelodyInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSpawnPlatform(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "CrescendoDash" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Dash" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnCrescendoDash(InputAction.CallbackContext context);
+        void OnDash(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Tune" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

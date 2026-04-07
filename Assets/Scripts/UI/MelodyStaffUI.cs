@@ -7,75 +7,78 @@ namespace MutedMelody.UI
 {
     public class MelodyStaffUI : MonoBehaviour
     {
-        [Header("References")]
         [SerializeField] private Image _fillImage;
-        [SerializeField] private RectTransform _container;
-        
-        [Header("Settings")]
+        [SerializeField] private RectTransform _pulseTarget;
         [SerializeField] private Color _normalColor = Color.white;
-        [SerializeField] private Color _criticalColor = Color.magenta;
-        [SerializeField] private float _criticalPulseSpeed = 5f;
-        
-        [Header("Beat Pulse")]
-        [SerializeField] private float _beatPulseScale = 1.05f;
-        [SerializeField] private float _beatReturnSpeed = 10f;
+        [SerializeField] private Color _criticalColor = new Color(1f, 0.2f, 0.6f, 1f);
+        [SerializeField] private float _beatPulseScale = 1.04f;
+        [SerializeField] private float _recoverSpeed = 8f;
+        [SerializeField] private float _criticalPulseSpeed = 6f;
+        [SerializeField] private float _criticalPulseAmount = 0.15f;
 
-        private Vector3 _originalScale;
+        private Vector3 _baseScale = Vector3.one;
+        private float _targetFill;
         private bool _isCritical;
 
         private void Awake()
         {
-            if (_container != null) _originalScale = _container.localScale;
+            if (_pulseTarget == null)
+            {
+                _pulseTarget = transform as RectTransform;
+            }
+
+            if (_pulseTarget != null)
+            {
+                _baseScale = _pulseTarget.localScale;
+            }
         }
 
         private void OnEnable()
         {
-            EventBus.Subscribe<MelodyStaffChangedEvent>(OnStaffChanged);
+            EventBus.Subscribe<MelodyStaffChangedEvent>(OnMelodyChanged);
             EventBus.Subscribe<BeatEvent>(OnBeat);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<MelodyStaffChangedEvent>(OnStaffChanged);
+            EventBus.Unsubscribe<MelodyStaffChangedEvent>(OnMelodyChanged);
             EventBus.Unsubscribe<BeatEvent>(OnBeat);
         }
 
         private void Update()
         {
-            if (_container == null || _fillImage == null) return;
-
-            // P07.14: Return scale to normal smoothly
-            if (_container.localScale.x > _originalScale.x)
+            if (_fillImage != null)
             {
-                _container.localScale = Vector3.Lerp(_container.localScale, _originalScale, Time.deltaTime * _beatReturnSpeed);
+                _fillImage.fillAmount = Mathf.MoveTowards(_fillImage.fillAmount, _targetFill, _recoverSpeed * Time.unscaledDeltaTime);
+
+                if (_isCritical)
+                {
+                    float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * _criticalPulseSpeed);
+                    _fillImage.color = Color.Lerp(_normalColor, _criticalColor, pulse * _criticalPulseAmount + (1f - _criticalPulseAmount));
+                }
+                else
+                {
+                    _fillImage.color = _normalColor;
+                }
             }
 
-            // P07.13: Pulse color if critical
-            if (_isCritical)
+            if (_pulseTarget != null)
             {
-                float sine = (Mathf.Sin(Time.time * _criticalPulseSpeed) + 1f) / 2f;
-                _fillImage.color = Color.Lerp(_normalColor, _criticalColor, sine);
-            }
-            else
-            {
-                _fillImage.color = _normalColor;
+                _pulseTarget.localScale = Vector3.Lerp(_pulseTarget.localScale, _baseScale, _recoverSpeed * Time.unscaledDeltaTime);
             }
         }
 
-        private void OnStaffChanged(MelodyStaffChangedEvent evt)
+        private void OnMelodyChanged(MelodyStaffChangedEvent evt)
         {
-            if (_fillImage != null)
-            {
-                _fillImage.fillAmount = evt.NormalizedMelody;
-            }
+            _targetFill = evt.NormalizedMelody;
             _isCritical = evt.IsCritical;
         }
 
         private void OnBeat(BeatEvent evt)
         {
-            if (_container != null)
+            if (_pulseTarget != null)
             {
-                _container.localScale = _originalScale * _beatPulseScale;
+                _pulseTarget.localScale = _baseScale * _beatPulseScale;
             }
         }
     }

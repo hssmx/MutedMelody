@@ -8,106 +8,137 @@ namespace MutedMelody.Platforms
 {
     public class NotePlatformManager : MonoBehaviour
     {
-        [Header("Configuration")]
-        [SerializeField] private NotePlatformData _data;
-        [SerializeField] private NotePlatform _platformPrefab;
+        [Header("References")]
+        [SerializeField] private NotePlatformData _platformData;
         [SerializeField] private Transform _playerTransform;
-        [SerializeField] private JudgmentConfig _judgmentConfig;
+        [SerializeField] private ConductorManager _conductorManager;
+        [SerializeField] private SFXPoolManager _sfxPoolManager;
 
-        private Queue<NotePlatform> _activeQueue = new Queue<NotePlatform>();
-        private List<NotePlatform> _pool = new List<NotePlatform>();
-        
-        private int _totalSpawnedCount = 0;
+        [Header("Audio")]
+        [SerializeField] private AudioClip _perfectSfx;
+        [SerializeField] private AudioClip _goodSfx;
+        [SerializeField] private AudioClip _missSfx;
 
-        private void Start()
+        private readonly Queue<NotePlatform> _activePlatforms = new();
+        private readonly Queue<NotePlatform> _platformPool = new();
+
+        private void Awake()
         {
-            WarmupPool();
-        }
-
-        private void WarmupPool()
-        {
-            int poolSize = _data.maxActivePlatforms + 5;
-            for (int i = 0; i < poolSize; i++)
+            if (_platformData == null)
             {
-                CreateNewPlatformForPool();
-            }
-        }
-
-        private NotePlatform CreateNewPlatformForPool()
-        {
-            NotePlatform newPlatform = Instantiate(_platformPrefab); 
-            newPlatform.gameObject.SetActive(false);
-            _pool.Add(newPlatform);
-            return newPlatform;
-        }
-
-        private NotePlatform GetFromPool()
-        {
-            foreach (var platform in _pool)
-            {
-                if (!platform.IsActive)
-                {
-                    return platform;
-                }
+                Debug.LogError("[NotePlatformManager] Missing NotePlatformData.", this);
+                enabled = false;
+                return;
             }
 
-            Debug.LogWarning("[NotePlatformManager] Pool exhausted! Growing on demand. Consider increasing initial pool size.");
-            return CreateNewPlatformForPool();
+            WarmPool();
+        }
+
+        private void WarmPool()
+        {
+            int warmCount = Mathf.Max(_platformData.maxActivePlatforms + 2, _platformData.poolSize);
+
+            for (int i = 0; i < warmCount; i++)
+            {
+                NotePlatform platform = Instantiate(_platformData.platformPrefab, transform);
+                platform.gameObject.SetActive(false);
+                _platformPool.Enqueue(platform);
+            }
         }
 
         public void SpawnPlatform()
         {
-            if (ConductorManager.Instance != null && _judgmentConfig != null)
+            if (_playerTransform == null)
             {
-                var (result, offsetMs) = BeatJudgment.Judge(ConductorManager.Instance, _judgmentConfig);
-                
-                // Publish the result so UI/VFX/Score systems can react later
-                EventBus.Publish(new JudgmentEvent { Result = result, OffsetMs = offsetMs });
-                
-                // Temporary debug log so you can see your timing in the console!
-                Debug.Log($"[Beat Judgment] {result}! Offset: {offsetMs:F1}ms");
+                Debug.LogWarning("[NotePlatformManager] No player transform assigned.", this);
+                return;
             }
-            
-            // FIFO Overflow Check
-            if (_activeQueue.Count >= _data.maxActivePlatforms)
+
+            if (_activePlatforms.Count >= _platformData.maxActivePlatforms)
             {
-                NotePlatform oldest = _activeQueue.Dequeue();
+                ShatterOldestPlatform();
+            }
+
+            NotePlatform platform = GetPlatformFromPool();
+            Vector3 spawnPosition = _playerTransform.position + (Vector3)_platformData.spawnOffset;
+
+            platform.transform.position = spawnPosition;
+            platform.Initialize(this);
+            platform.gameObject.SetActive(true);
+
+            _activePlatforms.Enqueue(platform);
+            JudgeSpawnTiming();
+        }
+
+        public void ReturnToPool(NotePlatform platform)
+        {
+            if (platform == null)
+            {
+                return;
+            }
+
+            platform.gameObject.SetActive(false);
+            _platformPool.Enqueue(platform);
+        }
+
+        private NotePlatform GetPlatformFromPool()
+        {
+            if (_platformPool.Count > 0)
+            {
+                return _platformPool.Dequeue();
+            }
+
+            Debug.LogWarning("[NotePlatformManager] Platform pool exhausted. Growing pool.", this);
+            NotePlatform platform = Instantiate(_platformData.platformPrefab, transform);
+            platform.gameObject.SetActive(false);
+            return platform;
+        }
+
+        private void ShatterOldestPlatform()
+        {
+            if (_activePlatforms.Count == 0)
+            {
+                return;
+            }
+
+            NotePlatform oldest = _activePlatforms.Dequeue();
+
+            if (oldest != null && oldest.gameObject.activeSelf)
+            {
                 oldest.Shatter();
             }
-
-            // Get and Activate
-            NotePlatform nextPlatform = GetFromPool();
-            _totalSpawnedCount++;
-            
-            Vector2 spawnPos = (Vector2)_playerTransform.position + new Vector2(0, _data.spawnOffsetY);
-            nextPlatform.Activate(spawnPos, _totalSpawnedCount, _data.platformSize);
-            
-            _activeQueue.Enqueue(nextPlatform);
-
-            // Broadcast Event
-            EventBus.Publish(new NoteSpawnedEvent 
-            { 
-                Position = spawnPos, 
-                ActiveCount = _activeQueue.Count,
-                SpawnDspTime = AudioSettings.dspTime 
-            });
         }
 
-        public void ClearAllPlatforms()
+        private void JudgeSpawnTiming()
         {
-            while (_activeQueue.Count > 0)
+            if (_conductorManager == null)
             {
-                NotePlatform platform = _activeQueue.Dequeue();
-                platform.Shatter();
+                return;
             }
-        }
 
-        // Used to detect if the player is standing on the platform that is about to shatter
-        public bool IsPlayerOnPlatform(NotePlatform platform)
-        {
-            // Implementation requires reference to Player's grounded state or physics check
-            // For now, returning false until Player integration is tighter.
-            return false; 
+            JudgmentResult result = BeatJudgment.Judge(_conductorManager.GetTimeSinceLastBeat(), out float offsetMs);
+
+            EventBus.Publish(new PlayerPlatformJudgedEvent
+            {
+                Result = result,
+                OffsetMs = offsetMs
+            });
+
+            AudioClip clipToPlay = result switch
+            {
+                JudgmentResult.Perfect => _perfectSfx,
+                JudgmentResult.Good => _goodSfx,
+                _ => _missSfx
+            };
+
+            if (_sfxPoolManager != null && clipToPlay != null)
+            {
+                _sfxPoolManager.PlaySFX(clipToPlay, transform.position);
+            }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log($"[Beat Judgment] {result} | {offsetMs:F1}ms");
+#endif
         }
     }
 }
