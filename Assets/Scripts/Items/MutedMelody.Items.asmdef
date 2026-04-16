@@ -1,11 +1,9 @@
 {
-    "name": "MutedMelody.Enemies",
-    "rootNamespace": "MutedMelody.Enemies",
+    "name": "MutedMelody.Items",
+    "rootNamespace": "",
     "references": [
-        "MutedMelody.Core",
-        "MutedMelody.Stats",
-        "MutedMelody.Environment",
-        "MutedMelody.Items"
+        "GUID:93bfb9dcc044e025581fcb5cb1fdc896",
+        "GUID:f0d13416de41ffe2c8f13dacc1220cfe"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
