@@ -82,7 +82,7 @@ namespace MutedMelody.Player.Abilities
             _player.SetInvincible(_dashDuration);
 
             _rb.gravityScale = 0f;
-            _rb.linearVelocity = new Vector2(Mathf.Sign(transform.localScale.x) * _dashSpeed, 0f);
+            _rb.linearVelocity = new Vector2((_player.IsFacingRight? 1 : -1) * _dashSpeed, 0f);
         }
 
         private void EndDash()

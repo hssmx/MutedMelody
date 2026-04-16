@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 938012109}
   - component: {fileID: 938012111}
   - component: {fileID: 938012112}
+  - component: {fileID: 938012113}
   m_Layer: 0
   m_Name: --- MANAGERS ---
   m_TagString: Untagged
@@ -192,6 +193,18 @@ MonoBehaviour:
   jumpBufferWindow: 0.1
   dashBufferWindow: 0.15
   platformBufferWindow: 0.1
+--- !u!114 &938012113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 938012108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd258dedb53342ee88e0b7c1a47d91af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MutedMelody.Core::MutedMelody.Core.Pooling.PoolManager
 --- !u!1 &1093315171
 GameObject:
   m_ObjectHideFlags: 0

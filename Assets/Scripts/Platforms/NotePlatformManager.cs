@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using MutedMelody.Core;
 using MutedMelody.Core.Events;
 using MutedMelody.Audio;
+using MutedMelody.Core.Pooling; // New Include!
 
 namespace MutedMelody.Platforms
 {
     public class NotePlatformManager : MonoBehaviour
     {
+        public const string PoolName = "NotePlatforms"; // ID for the PoolManager
+
         [SerializeField] private NotePlatform _platformPrefab;
         [SerializeField] private NotePlatformData _data;
         [SerializeField] private Transform _playerTransform;
@@ -17,23 +20,12 @@ namespace MutedMelody.Platforms
         [SerializeField] private LayerMask _obstacleLayer;
         [SerializeField] private Vector2 _platformSize = new Vector2(2f, 0.5f);
 
-        private List<NotePlatform> _pool = new List<NotePlatform>();
         private Queue<NotePlatform> _activeQueue = new Queue<NotePlatform>();
 
-        private void Awake()
+        private void Start()
         {
-            for (int i = 0; i < _data.maxActivePlatforms; i++)
-            {
-                CreateNewPlatformForPool();
-            }
-        }
-
-        private NotePlatform CreateNewPlatformForPool()
-        {
-            NotePlatform newPlatform = Instantiate(_platformPrefab); 
-            newPlatform.gameObject.SetActive(false);
-            _pool.Add(newPlatform);
-            return newPlatform;
+            // Register and warm up the pool globally using Start to ensure PoolManager is loaded
+            PoolManager.Instance.CreatePool(PoolName, _platformPrefab, _data.maxActivePlatforms, transform);
         }
 
         public void SpawnPlatform()
@@ -49,9 +41,12 @@ namespace MutedMelody.Platforms
             {
                 NotePlatform oldestPlatform = _activeQueue.Dequeue();
                 oldestPlatform.Shatter();
+                
+                // --- Return to global pool instead of just letting it sit inactive ---
+                PoolManager.Instance.Return(PoolName, oldestPlatform);
             }
 
-            Vector2 spawnPos = _playerTransform.position + Vector3.down*0.5f;
+            Vector2 spawnPos = _playerTransform.position + Vector3.down * 0.5f;
             Collider2D hit = Physics2D.OverlapBox(spawnPos, _platformSize, 0f, _obstacleLayer);
             
             if (hit != null)
@@ -60,11 +55,8 @@ namespace MutedMelody.Platforms
                 spawnPos.x += shiftDir * (_platformSize.x / 2f);
             }
 
-            NotePlatform platform = _pool.Find(p => !p.IsActive);
-            if (platform == null)
-            {
-                platform = CreateNewPlatformForPool();
-            }
+            // Fetch a fresh platform from the global pool
+            NotePlatform platform = PoolManager.Instance.Get<NotePlatform>(PoolName);
 
             platform.Activate(spawnPos, _activeQueue.Count, _platformSize);
             _activeQueue.Enqueue(platform);

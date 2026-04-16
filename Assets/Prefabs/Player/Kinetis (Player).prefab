@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 2531592169931453458}
   - component: {fileID: 2575408864648360651}
   - component: {fileID: 1404485556279236213}
-  - component: {fileID: 3133863566533583394}
   - component: {fileID: 1340295861330879960}
   - component: {fileID: 9220090517747345706}
   - component: {fileID: 1512815789187812819}
@@ -189,33 +188,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: MutedMelody.Player::MutedMelody.Player.PlayerController
   _movementData: {fileID: 11400000, guid: 628fb2f62fbd64996a96d6d5bbfb84b1, type: 2}
   _inputBuffer: {fileID: 0}
-  _platformManager: {fileID: 3133863566533583394}
+  _platformManager: {fileID: 0}
   _groundCheck: {fileID: 2457779562207920696}
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
   _drawGroundCheck: 1
   _groundCheckRadius: 0.15
---- !u!114 &3133863566533583394
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2075743189439281641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f475047972352ab98a496b58d3b27e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MutedMelody.Platforms::MutedMelody.Platforms.NotePlatformManager
-  _platformPrefab: {fileID: -237842968581030474, guid: f95739d9326eca16f844df98b21348ab, type: 3}
-  _data: {fileID: 11400000, guid: 7113a5a026126397ea15eb904a602224, type: 2}
-  _playerTransform: {fileID: 7573655176631430256}
-  _judgmentConfig: {fileID: 11400000, guid: ed379a12d2c719a8ebc562afe6801f69, type: 2}
-  _obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  _platformSize: {x: 1, y: 1}
 --- !u!114 &1340295861330879960
 MonoBehaviour:
   m_ObjectHideFlags: 0
