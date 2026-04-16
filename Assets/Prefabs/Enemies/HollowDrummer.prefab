@@ -15,11 +15,11 @@ GameObject:
   - component: {fileID: 988701178356470205}
   m_Layer: 0
   m_Name: HollowDrummer
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &145441091739272012
 Transform:
   m_ObjectHideFlags: 0
@@ -109,6 +109,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MutedMelody.Enemies::MutedMelody.Enemies.HollowDrummer
   data: {fileID: 11400000, guid: 782f838ddeecc12ca85555869eac0f8f, type: 2}
+  currentHP: 0
   strikeEveryNBeats: 2
 --- !u!114 &5440379815760750349
 MonoBehaviour:

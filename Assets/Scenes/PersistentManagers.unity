@@ -220,6 +220,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MutedMelody.Enemies::MutedMelody.Enemies.EnemyPoolSetup
   shockwavePrefab: {fileID: 6710111531707455145, guid: aeac5a0ea390e4ffc911601a7f699574, type: 3}
   melodyPickupPrefab: {fileID: 4819082303539762868, guid: 66c355c18c63cafe597d4cbc9d22f0f6, type: 3}
+  projectilePrefab: {fileID: 4075373316110206332, guid: 47afc01c4c57bdff88c08a3b1b53146f, type: 3}
 --- !u!1 &1093315171
 GameObject:
   m_ObjectHideFlags: 0
